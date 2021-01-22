@@ -1,5 +1,3 @@
-module github.com/aljo242/golearn
-
-require google.golang.org/protobuf v1.25.0
+module golearn
 
 go 1.15
