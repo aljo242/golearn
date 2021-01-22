@@ -1,4 +1,4 @@
-package main
+package golearn
 
 import (
 	"fmt"
@@ -207,14 +207,4 @@ func Constants() {
 
 	fmt.Printf("const f = iota -> %v, %T\n", f, f)
 	fmt.Printf("const g = iota -> %v, %T\n", g, g)
-}
-
-func main() {
-	// defer means a function will be executed when LEAVING the current scope
-	// can be useful for deferring error stuff
-	defer fmt.Println(Hello())
-	Declarations()
-	Conversions()
-	Primitives()
-	Constants()
 }
