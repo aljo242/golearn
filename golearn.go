@@ -257,10 +257,38 @@ func Constants() {
 func ArraysAndSlices() {
 	fmt.Println("\nShowing Array and Slices Basics in Go...")
 	// Arrays are declated using:
-	// NAME := [SIZE]TYPE
+	// NAME := [SIZE]TYPE{initializer_list}
 	// where size is a compile time constant
+	// var NAME [SIZE]TYPE
+	// NAME := [...]TYPE{intializer_list}
+	// ... is ok, because size can just be inferred from the initializer list length
+	// we dont have NAME := []TYPE because that is the syntax for SLICES
+
+	// arrays in Go ARE contiguous in memory
+
+	// NAME := [SIZE]TYPE{initializer_list}
 	grades := [3]int{93, 45, 59}
+	fmt.Println(grades) // can print arrays like this
 	for index, grade := range grades {
-		fmt.Println(index, grade)
+		fmt.Println(index, grade) // or iterate using range construct
+	}
+
+	// NAME := [...]TYPE{initializer_list}
+	grades2 := [...]int{93, 45, 59}
+	fmt.Println(grades2) // can print arrays like this
+	for index, grade := range grades2 {
+		fmt.Println(index, grade) // or iterate using range construct
+	}
+
+	// var NAME [SIZE]TYPE
+	var grades3 [3]int
+	grades3 = grades2    // array assigmment here uses a copy ??
+	fmt.Println(grades3) // can print arrays like this
+	for index, grade := range grades3 {
+		fmt.Println(index, grade) // or iterate using range construct
+	}
+
+	if len(grades) == len(grades2) && len(grades) == len(grades3) {
+		fmt.Println("Length of arrays are all the same!")
 	}
 }
