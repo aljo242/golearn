@@ -2,6 +2,7 @@ package golearn
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -410,9 +411,37 @@ func ArraysAndSlices() {
 
 // Doctor is a basic type containing a Doctor Who doctor number, actor name, and slice of companion names
 type Doctor struct {
-	number     int
+	// Number is the number indicating which doctor it is
+	Number     int
 	actorName  string
 	companions []string
+}
+
+// structs are just a collection of fields ^^^^
+// as with anything in Go,	PascalCase = export
+//							camelCase = no export
+
+// Instead of typical OOP inheritence, Go uses a model called Composition
+
+// Animal is a basic base struct for animal
+type Animal struct {
+	Name   string `reqired max:"100"`
+	Origin string
+}
+
+// we can use tags in fields that give some kind of property to
+// users of the struct
+// basically a rule that has to be followed for a struct field
+
+// Bird has added parameters for speed and ability to fly
+type Bird struct {
+	Animal // this struct is EMBEDDED into the Bird struct
+	// it is not named, so now Bird has two additional fields
+	// Name string
+	// Origin string
+	// that it got from being composed of Animal
+	SpeedKPH float32
+	CanFly   bool
 }
 
 // MapsAndStructs details other basic container primitives in Go
@@ -474,13 +503,86 @@ func MapsAndStructs() {
 	delete(sp, "Ohio")
 	fmt.Println("Map length after delete on a copy:", len(statePopulations))
 
+	// example of initalizing a struct with named fields
+	// NAME = STRUCT {
+	//	fieldA : value
+	//	fieldB : value
+	// 	...
+	//}
+
 	aDoctor := Doctor{
-		number:    3,
+		Number:    3,
 		actorName: "Jon Pertwee",
 		companions: []string{
 			"Liz Shaw",
 			"Jo Grant",
+			"Sarah Jane Smith",
 		},
 	}
 	fmt.Println(aDoctor)
+
+	// can access struct members using the . syntax
+	if aDoctor.Number == 3 {
+		fmt.Println("Doctor is number", aDoctor.Number)
+	}
+
+	// anonymous structs can be created locally and do not have type names
+	anon := struct{ name string }{name: "Bob"}
+	// structs are VALUE TYPES, so they are value COPIED
+	anotherAnon := anon
+	anotherAnon.name = "Joe"
+
+	// can use references to copy by refence
+	pAnon := &anon
+	pAnon.name = "Jimmy"
+	fmt.Println("OG:", anon)
+	fmt.Println("Value Copy Modified", anotherAnon)
+	fmt.Println("Reference Modified:", pAnon)
+
+	// creating a struct with the Composed struct, Bird
+	// which is has the Animal struct Embedded in it
+
+	// When using composed types, this syntax is kind of nice
+	b := Bird{}
+	b.Name = "Emu"
+	b.Origin = "Australia"
+	b.SpeedKPH = 48
+	b.CanFly = false
+	fmt.Println(b)
+
+	// because when using the named initializer syntax, its like this:
+	// therefor you need to kind of know more about the layout of the struct
+	c := Bird{
+		Animal:   Animal{Name: "Emu", Origin: "Australia"},
+		SpeedKPH: 48,
+		CanFly:   false,
+	}
+	fmt.Println(c)
+
+	// using reflection in Go
+	t := reflect.TypeOf(Animal{})
+	field, _ := t.FieldByName("Name")
+	fmt.Println(field.Tag)
+
+	// SUMMARY
+	// Maps are collections of value types accessed by keys
+	// created by literal syntax or the make() function
+	// check for presence using value, ok = map[key] syntax
+	// 		ok is a bool
+	// maps themselves are refrence types, so copies will modify
+	// the underlying values
+
+	// Structs collect all kinds of different types
+	// can have names structs or anonymous structs using the same basic syntax
+	// structs themselves are value types, so copies will not modify
+	// be weary of costly copies with large structs
+
+	// structs do not have typical OOP inheritence
+	// use a composition technique called embedding
+	// where structs are embedded into structs,
+	// allowing sub-struct fields to be accessed like any other named field
+
+	// Can use the "reflect" library
+	// to query type, field, and tag info
+	// can use these for validation framework
 }
