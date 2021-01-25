@@ -207,4 +207,21 @@ func Constants() {
 
 	fmt.Printf("const f = iota -> %v, %T\n", f, f)
 	fmt.Printf("const g = iota -> %v, %T\n", g, g)
+
+	// we can pack multiple bit flags into a single byte
+	const (
+		isAdmin = 1 << iota
+		isHeadquarters
+		canSeeFinancials
+
+		canSeeAfrica
+		canSeeAsia
+		canSeeEurope
+		canSeeNorthAmerica
+		canSeeSouthAmericca
+	)
+
+	fmt.Println("Bit flag packed byte:")
+	var roles byte = isAdmin | canSeeFinancials | canSeeEurope
+	fmt.Printf("\n%b\n", roles)
 }
