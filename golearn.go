@@ -224,4 +224,5 @@ func Constants() {
 	fmt.Println("Bit flag packed byte:")
 	var roles byte = isAdmin | canSeeFinancials | canSeeEurope
 	fmt.Printf("\t%b\n", roles)
+	fmt.Printf("Is Admin? %v", isAdmin&roles) //000001 & 100101 = 1
 }
