@@ -393,4 +393,23 @@ func ArraysAndSlices() {
 	stack = append(stack[:2], stack[3:]...)
 	fmt.Println("Slice:", stack, "len:", len(stack), "cap:", cap(stack))
 
+	// SUMMARY
+	// Arrays are contigiuous collections of items of the same type
+	//		have fixed size (at compile time)
+	// Slices are "views" of arrays
+	//		are backed by a real contiguous array somewhere in memory
+	//		can be thought of as ranges or vectors since they have dynamic size
+	//		can use the make([]TYPE, LENGTH, CAPACITY) fuction to create a slice
+	//		with more capacity than length so we dont perform too many copies
+	//			same idea as creating std::vector<T>
+	//		append() can add items, but watch out for unncessary copies
+	//		if you keep appending items
+	//		slice copies all will refer to the same underlying array
+	// 		since they are just VIEWs of a real place in memory
+}
+
+// MapsAndStructs details other basic container primitives in Go
+func MapsAndStructs() {
+	fmt.Println("\nShowing Maps and Structs Basics in Go...")
+
 }
