@@ -27,7 +27,7 @@ func Hello() string {
 
 // Declarations shows the ways to declare variables in Go
 func Declarations() {
-	fmt.Println("Showing basic declarations in Go...")
+	fmt.Println("\nShowing basic declarations in Go...")
 	// var NAME TYPE
 	var a int
 	a = 1
@@ -57,7 +57,7 @@ func Declarations() {
 // Conversions shows some basic concepts of converting between types
 // in Go's strong typed system
 func Conversions() {
-	fmt.Println("Showing basic conversions in Go's strong type system...")
+	fmt.Println("\nShowing basic conversions in Go's strong type system...")
 	// basic float types are 32 and 64 bits
 	j := float32(i)
 	k := float64(i)
@@ -75,7 +75,7 @@ func Conversions() {
 
 // Primitives details the basic types Go provides
 func Primitives() {
-	fmt.Println("Showing the basic types in Go...")
+	fmt.Println("\nShowing the basic types in Go...")
 	// boolean
 	var n bool = 2 == 2
 	fmt.Printf("var = %v, %T\n", n, n)
@@ -163,7 +163,7 @@ func Primitives() {
 // enumerated constants
 // enumeration expressions
 func Constants() {
-	fmt.Println("Showing off constants in Go...")
+	fmt.Println("\nShowing off constants in Go...")
 	// constants preceded by "const" keyword
 	// do not name constants as MYCONST in Go
 	// because the capital first letter will
@@ -249,4 +249,18 @@ func Constants() {
 	// operations that can be determined at compile time are allowed
 	//	use the iota construct paired with operations to create related constants
 	//	arithmetic, bitwise operations, bitshifting
+}
+
+// ArraysAndSlices first details arrays, which are the basis
+// for slices, then slices, which allow for dynamic views
+// of allocated memory
+func ArraysAndSlices() {
+	fmt.Println("\nShowing Array and Slices Basics in Go...")
+	// Arrays are declated using:
+	// NAME := [SIZE]TYPE
+	// where size is a compile time constant
+	grades := [3]int{93, 45, 59}
+	for index, grade := range grades {
+		fmt.Println(index, grade)
+	}
 }
