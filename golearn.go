@@ -224,5 +224,29 @@ func Constants() {
 	fmt.Println("Bit flag packed byte:")
 	var roles byte = isAdmin | canSeeFinancials | canSeeEurope
 	fmt.Printf("\t%b\n", roles)
-	fmt.Printf("Is Admin? %v", isAdmin&roles) //000001 & 100101 = 1
+	fmt.Printf("Is Admin? %v\n", isAdmin&roles == isAdmin)            //000001 & 100101 = 000001
+	fmt.Printf("Is HQ? %v\n", isHeadquarters&roles == isHeadquarters) // 000010 & 100101 = 000000
+
+	// IN SUMMARY
+	// constants are immutable, but CAN be shadowed
+	// constant values must be replaced by the compiler
+	//		AT compile time
+	//		therefore, must be calculatable at compile time
+	// are named just like variables:
+	//	exported 		: PascalCase
+	// 	non-exported 	: camelCase
+	// typed constants work like immutable variables
+	//		interoperate only with own type
+	// untyped constants behave like literals in source
+	//		can interoperate with similar types
+	// 		therefore, are more like #DEFINE in C/C++
+	// Enumerated Constants
+	// 	special symbol, "iota", allows for related constants to be created
+	// 	iota starts at 0 in each unique const block, then increments by 1
+	// 	watch out for defining constant values at 0, since variables
+	//		are generally 0-initialized in Go
+	// Enumerated Operations
+	// operations that can be determined at compile time are allowed
+	//	use the iota construct paired with operations to create related constants
+	//	arithmetic, bitwise operations, bitshifting
 }
