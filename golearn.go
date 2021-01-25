@@ -321,10 +321,13 @@ func ArraysAndSlices() {
 	// along with a len() property, they also have a cap()
 	// 		len : length of the data SEEN by the slice
 	//		cap : length of the underlying array
+	// as they are VIEWs of arrays
+	// slices are like RANGES concepts in std::ranges and D-ranges
+	// ARE THEY LAZILY EVALUATED?
 
 	// main declaration is:
 	// NAME := []TYPE{initializer_list}
-	slice := []int{1, 2, 3}
+	slice := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 	// since slices are "views" this assignment does not copy
 	// both slices view the same underlying array
 	slice2 := slice
@@ -333,5 +336,61 @@ func ArraysAndSlices() {
 	fmt.Println("Modifying copied slice of original slice...")
 	slice2[2] = 4
 	fmt.Println(slice, "Length:", len(slice), "Capacity:", cap(slice))
+
+	// other slice declarations
+	a := slice[:]   // slice of all elements
+	b := slice[3:]  // slice of index 3 and up			(element 3 to 9)
+	c := slice[:6]  // slice up to index 6				(element 1 to 6)
+	d := slice[3:6] // slice from index 3 up to index 6	(element 4 to 6)
+	fmt.Println(a)
+	fmt.Println(b)
+	fmt.Println(c)
+	fmt.Println(d)
+
+	// slices can also come from arrays
+	// this makes plenty of sense, as they are by definition
+	// views of arrays
+	// note that making a slice from an array will mean the length and capacity
+	// should be the same, since the length of an ARRAY is equivalent to its capacity
+	f := [3]int{3, 2, 1}
+	fmt.Println("Making a slice from an array...")
+	slicef := f[:]
+	fmt.Println("Slice:", slicef, "len:", len(slicef), "cap:", cap(slicef))
+
+	// one more way to make a slice
+	// is to use the builtin "make" functionality
+	// SLICE := make([]TYPE, LENGTH, CAPACITY)
+	slice = make([]int, 3, 100)
+	fmt.Println("Making a slice using make([]int, 3)")
+	fmt.Println("Slice:", slice, "len:", len(slice), "cap:", cap(slice))
+	slice = append(slice, 4)
+	fmt.Println("Slice:", slice, "len:", len(slice), "cap:", cap(slice))
+	slice = append(slice, 5, 6, 7, 8, 89, 190, 4)
+	fmt.Println("Slice:", slice, "len:", len(slice), "cap:", cap(slice))
+
+	// concatenating slices
+	// the syntax:
+	//		SLICE_A = append(SLICE_B, SLICE_C...)
+	// 		decomposes SLICE_C into a literals list which can be accepted
+	//		by the append() function
+	slice = append(slice, slicef...)
+	fmt.Println("Slice:", slice, "len:", len(slice), "cap:", cap(slice))
+
+	// using slices like a stack
+	// append() is basically push()
+	// b = a[1:] shifts the slice, "popping" the first element essentially
+	stack := make([]int, 3, 10)
+	stack[0] = 1
+	stack[1] = 2
+	stack[2] = 3
+	stack = append(stack, 4)     // push
+	stack = stack[1:]            // pop_front
+	stack = stack[:len(stack)-1] // pop_back
+	stack = append(stack, 5)     // push
+	stack = append(stack, 5)     // push
+
+	// what about removing an element from the middle?
+	stack = append(stack[:2], stack[3:]...)
+	fmt.Println("Slice:", stack, "len:", len(stack), "cap:", cap(stack))
 
 }
