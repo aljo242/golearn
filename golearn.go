@@ -408,8 +408,79 @@ func ArraysAndSlices() {
 	// 		since they are just VIEWs of a real place in memory
 }
 
+// Doctor is a basic type containing a Doctor Who doctor number, actor name, and slice of companion names
+type Doctor struct {
+	number     int
+	actorName  string
+	companions []string
+}
+
 // MapsAndStructs details other basic container primitives in Go
 func MapsAndStructs() {
 	fmt.Println("\nShowing Maps and Structs Basics in Go...")
 
+	// Maps behave the way they do in any language
+	// syntax
+	//		NAME := map[KEY]VALUE
+	//		to be a KEY, a type must have equivalency checking
+	//		because an equivalency check is performed to see if a key
+	//		is in the map
+
+	statePopulations := map[string]int{
+		"California":   39250017,
+		"Texas":        27862596,
+		"Florida":      20612439,
+		"New York":     19745289,
+		"Pennsylvania": 12802503,
+		"Illinois":     12801539,
+		"Ohio":         11614373,
+	}
+	statePopulations["Georgia"] = 10310371 // add a new element
+
+	fmt.Println(statePopulations)
+
+	// can also declare maps using the "make" syntax
+	otherMap := make(map[string]int)
+
+	// we can read and write to maps by using their key like an array index
+	// this one below CREATES a new key
+	otherMap["key"] = 1          // write
+	fmt.Println(otherMap["key"]) // read
+
+	// note that maps do not have some kind of ordering
+	// if you modify a map and then print it,
+	//		the ordering might just be some random shit
+
+	// we can delete items from maps too
+	fmt.Println(statePopulations)
+	delete(statePopulations, "Georgia") // deletes an item from a map
+	fmt.Println(statePopulations)
+
+	// if you query a key that does not exist in a map
+	// the return will be the zero-init value for the value type
+	// any query to a map also returns a second return value, ok bool
+	// which you can use to check if the value was actually in the map
+	pop, ok := statePopulations["Georgia"]
+	if !ok {
+		fmt.Println("Key not in map, returned value is:", pop)
+	}
+
+	// len(map) returns the number of elements in a map
+	fmt.Println("Map length:", len(statePopulations))
+
+	// maps are reference types, so modifications made to copies
+	// will modify the original
+	sp := statePopulations
+	delete(sp, "Ohio")
+	fmt.Println("Map length after delete on a copy:", len(statePopulations))
+
+	aDoctor := Doctor{
+		number:    3,
+		actorName: "Jon Pertwee",
+		companions: []string{
+			"Liz Shaw",
+			"Jo Grant",
+		},
+	}
+	fmt.Println(aDoctor)
 }
