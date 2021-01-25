@@ -282,11 +282,28 @@ func ArraysAndSlices() {
 
 	// var NAME [SIZE]TYPE
 	var grades3 [3]int
-	grades3 = grades2    // array assigmment here uses a copy ??
+	grades3 = grades2    // array assigmment here uses a copy
 	fmt.Println(grades3) // can print arrays like this
 	for index, grade := range grades3 {
 		fmt.Println(index, grade) // or iterate using range construct
 	}
+
+	// ARRAY ASSIGNMENT IN GO IS ACTUALLY ALWAYS A COPY!!!!
+	// WE CAN DO STUFF LIKE "POINTER" assignment in Go
+	// when we use SLICES
+	// lets prove this
+	// grades3 is assigned from grades2, but we know this is a cop
+	// so, if we modify grades3[2], only grades3 is modified, not grades2
+	grades2[2] = 12
+	fmt.Println("Arrays are copied in go, so modifying a copied array will not modify the orginal array:")
+	fmt.Println(grades2, grades3)
+
+	// if we use this syntax, we are taking a reference to the data
+	// so modifications made on grades3p will affect the underlying grades
+	grades3p := &grades2
+	grades3p[2] = 12
+	fmt.Println("Arrays can be taken by reference with &, and then will  modify the orginal array:")
+	fmt.Println(grades2, grades3p)
 
 	if len(grades) == len(grades2) && len(grades) == len(grades3) {
 		fmt.Println("Length of arrays are all the same!")
@@ -298,4 +315,23 @@ func ArraysAndSlices() {
 	identityMatrix[1] = [3]int{0, 1, 0}
 	identityMatrix[2] = [3]int{0, 0, 1}
 	fmt.Println(identityMatrix)
+
+	// SLICES
+	// slices are projections onto an underlying array
+	// along with a len() property, they also have a cap()
+	// 		len : length of the data SEEN by the slice
+	//		cap : length of the underlying array
+
+	// main declaration is:
+	// NAME := []TYPE{initializer_list}
+	slice := []int{1, 2, 3}
+	// since slices are "views" this assignment does not copy
+	// both slices view the same underlying array
+	slice2 := slice
+	fmt.Println(slice, "Length:", len(slice), "Capacity:", cap(slice))
+
+	fmt.Println("Modifying copied slice of original slice...")
+	slice2[2] = 4
+	fmt.Println(slice, "Length:", len(slice), "Capacity:", cap(slice))
+
 }
