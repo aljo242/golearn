@@ -223,5 +223,5 @@ func Constants() {
 
 	fmt.Println("Bit flag packed byte:")
 	var roles byte = isAdmin | canSeeFinancials | canSeeEurope
-	fmt.Printf("\n%b\n", roles)
+	fmt.Printf("\t%b\n", roles)
 }
