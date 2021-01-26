@@ -586,3 +586,9 @@ func MapsAndStructs() {
 	// to query type, field, and tag info
 	// can use these for validation framework
 }
+
+// ControlFlow details common control flow in Go (if, for, switch, select)
+func ControlFlow() {
+	fmt.Println("\nShowing Control Flow Basics in Go...")
+
+}
