@@ -592,7 +592,7 @@ func returnTrue() bool {
 	return true
 }
 
-// ControlFlow details common control flow in Go (if, for, switch)
+// ControlFlow details common control flow in Go (if, switch)
 func ControlFlow() {
 	fmt.Println("\nShowing Control Flow Basics in Go...")
 
@@ -699,4 +699,9 @@ func ControlFlow() {
 	default:
 		fmt.Println("j is another type")
 	}
+}
+
+// Loops details common loop structures in Go (mainly for)
+func Loops() {
+	fmt.Println("\nShowing Loop Basics in Go...")
 }
