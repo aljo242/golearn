@@ -587,8 +587,116 @@ func MapsAndStructs() {
 	// can use these for validation framework
 }
 
-// ControlFlow details common control flow in Go (if, for, switch, select)
+func returnTrue() bool {
+	fmt.Println("TRUE")
+	return true
+}
+
+// ControlFlow details common control flow in Go (if, for, switch)
 func ControlFlow() {
 	fmt.Println("\nShowing Control Flow Basics in Go...")
 
+	// a lot of IDIOMATIC GO uses initializers within if statements
+	statePopulations := map[string]int{
+		"California":   39250017,
+		"Texas":        27862596,
+		"Florida":      20612439,
+		"New York":     19745289,
+		"Pennsylvania": 12802503,
+		"Illinois":     12801539,
+		"Ohio":         11614373,
+	}
+
+	// here we do
+	// if initialize; boolean {}
+
+	// this is nice, because below pop and ok
+	// are only local to the if statement, just like (for i = 0; ...)
+	if pop, ok := statePopulations["Florida"]; ok {
+		fmt.Println(pop)
+	}
+
+	// remember that if there are multiple conditionals
+	// ORed together, they are executed right-to-left
+	num1 := -5
+	num2 := 105
+	num := num1
+
+	// both of these will return true
+	// but returnTrue() will only execute for the 2nd if stmt
+	if num < 5 || returnTrue() || num > 105 {
+		fmt.Println("Multi-statement is true")
+	}
+
+	num = num2
+	if num < 5 || returnTrue() || num > 105 {
+		fmt.Println("Multi-statement is true")
+	}
+
+	// IDIOMATIC Go uses switch statements instead of
+	// large chains of if -> else-if -> else-if
+
+	// unlike C/C++, switch statements have the "break;"
+	// built into them, so no need to include
+
+	// overlapping cases are NOT allowed
+	switch i := 2 + 3; i { // can use initializers just like if
+	case 1:
+		fmt.Println("one")
+	case 2:
+		fmt.Println("two")
+	case 3, 4, 5: // can have multiple tests as a comma-separated list
+		fmt.Println("three, four, five")
+		fallthrough
+		// since Go has "break" implied in switch statements,
+		// to get fallthrough behavior (which is the default in C-likes)
+		// you need to add a fallthorough.  This means that the cases
+		// of 3, 4, 5 and 20 are combined with fallthrough,
+		// but at case 20:, the break is still there
+		// so basically its the converse of C-like style
+	case 20:
+		fmt.Println("also maybe twenty (from fallthrough)")
+		if i == 5 {
+			break //  we can still insert breaks so we can skip stuff
+			// perhaps an error occurs and we want to break to resolve
+		}
+		fmt.Println("PLEASE DONT PRINT THIS")
+	default:
+		fmt.Println("default")
+	}
+
+	// another unique switch syntax does not use a tag
+	// since we are not switching a specific value
+	// we can take any value that is in our CONTEXT
+	// and use it in conditionals
+	// this is where switch-case becomes the defacto if -> else if -> else
+	// in Go
+	i = i * 3
+	switch {
+	case i <= 10:
+		fmt.Println("LEQ 20")
+	case i <= 20:
+		fmt.Println("LEQ 20")
+	default:
+		fmt.Println("Greater than 20")
+	}
+
+	// TYPE SWITCHING
+	// interface type can be assigned to anything in Go,
+	// so we may need to do type switching to find out what
+	// it is at runtime
+
+	// TYPE = NAME.(type) syntax
+	// pulls the type parameter
+	var j interface{} = 1
+	switch j.(type) {
+	case int:
+		fmt.Println("j is an int")
+	case float32, float64:
+		fmt.Println("j is a float")
+	case string:
+		fmt.Println("j is a string")
+	default:
+		fmt.Println("j is another type")
+	}
 }
