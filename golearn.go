@@ -701,7 +701,73 @@ func ControlFlow() {
 	}
 }
 
-// Loops details common loop structures in Go (mainly for)
+// Loops details common loop structures in Go (ONLY for)
 func Loops() {
 	fmt.Println("\nShowing Loop Basics in Go...")
+
+	// All looping statements in Go use for
+	fmt.Println("All looping statements in Go use for")
+
+	// simple loops
+	// classic syntax
+	// for NAME := VALUE; CONDITION; ITERATION {
+	//		body
+	// }
+
+	// note Go does not have "++i", only "i++"
+	for i := 0; i < 5; i++ {
+		fmt.Println(i)
+	}
+
+	// for loop with multiple values initialized
+	// we can use the syntax of
+	// VAR1, VAR2 := VALUE1, VALUE2  	initialization
+	// VAR1, VAR2 = VALUE1, VALUE2		assigmnent
+	for i, j := 0, 5; i < 5; i, j = i+1, j-1 {
+		fmt.Println(i, j)
+	}
+
+	// using an alread declared variable
+	// here, i is scoped to the main function
+	i := 0
+	for ; i < 5; i++ {
+		fmt.Println(i)
+	}
+
+	// removing the iteration statement
+	// we now just have the Go equivalent of a
+	// while loop
+	for i == 5 {
+		fmt.Println(i)
+		i = 6
+	}
+
+	// infinite while loop
+	for {
+		fmt.Println("inside infinite loop, break me out!")
+		break // break just exits the entire loop
+	}
+
+	// continue statements
+	// just skip directly the next loop interation
+	for i = 0; i < 10; i++ {
+		if i%2 == 0 { // check if even
+			continue
+		}
+		fmt.Println(i)
+	}
+
+	// can use labels like goto labels in Go
+Loop:
+	for i = 0; i < 3; i++ {
+		for j := 1; j < 3; j++ {
+			ij := i * j
+			fmt.Println(ij)
+			if ij >= 3 {
+				fmt.Println("Jumping to Loop label")
+				break Loop
+			}
+		}
+	}
+
 }
