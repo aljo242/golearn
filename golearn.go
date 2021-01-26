@@ -818,6 +818,8 @@ func panicker() {
 
 // DeferPanicRecover shows some advanced control flow constructs in Go
 func DeferPanicRecover() string {
+	fmt.Println("\nShowing Defer, Panic, Recover Basics in Go...")
+
 	// DEFER
 	// deferred functions execute when the context it is called inside
 	// returns to the context which called it
@@ -879,13 +881,13 @@ func DeferPanicRecover() string {
 		panic("WE ARE IN TROUBLE") // luckily this won't be triggered :)
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello Go!"))
-	})
-	err = http.ListenAndServe(":8080", nil)
-	if err != nil {
-		panic(err.Error())
-	}
+	//http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	//	w.Write([]byte("Hello Go!"))
+	//})
+	//err = http.ListenAndServe(":8080", nil)
+	//if err != nil {
+	//	panic(err.Error())
+	//}
 
 	// this function below will call a panic,
 	// but also has a deferred recover()
