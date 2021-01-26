@@ -27,7 +27,7 @@ func Hello() string {
 }
 
 // Declarations shows the ways to declare variables in Go
-func Declarations() {
+func Declarations() string {
 	fmt.Println("\nShowing basic declarations in Go...")
 	// var NAME TYPE
 	var a int
@@ -53,11 +53,12 @@ func Declarations() {
 	DD := AA + BB + CC + i
 	fmt.Println("DD is: ", DD)
 	// if the grouping makes some sense
+	return "Declarations"
 }
 
 // Conversions shows some basic concepts of converting between types
 // in Go's strong typed system
-func Conversions() {
+func Conversions() string {
 	fmt.Println("\nShowing basic conversions in Go's strong type system...")
 	// basic float types are 32 and 64 bits
 	j := float32(i)
@@ -72,10 +73,11 @@ func Conversions() {
 
 	s = strconv.Itoa(i)
 	fmt.Printf("strconv.Itoa(%d) = %v\n", i, s)
+	return "Conversions"
 }
 
 // Primitives details the basic types Go provides
-func Primitives() {
+func Primitives() string {
 	fmt.Println("\nShowing the basic types in Go...")
 	// boolean
 	var n bool = 2 == 2
@@ -155,6 +157,7 @@ func Primitives() {
 
 	// Text Operations
 	fmt.Printf("(s1 + and + s2) = %s\n", s1+and+s2) // string concatenation
+	return "Primitives"
 }
 
 // Constants covers:
@@ -163,7 +166,7 @@ func Primitives() {
 // untyped constants
 // enumerated constants
 // enumeration expressions
-func Constants() {
+func Constants() string {
 	fmt.Println("\nShowing off constants in Go...")
 	// constants preceded by "const" keyword
 	// do not name constants as MYCONST in Go
@@ -250,12 +253,13 @@ func Constants() {
 	// operations that can be determined at compile time are allowed
 	//	use the iota construct paired with operations to create related constants
 	//	arithmetic, bitwise operations, bitshifting
+	return "Constants"
 }
 
 // ArraysAndSlices first details arrays, which are the basis
 // for slices, then slices, which allow for dynamic views
 // of allocated memory
-func ArraysAndSlices() {
+func ArraysAndSlices() string {
 	fmt.Println("\nShowing Array and Slices Basics in Go...")
 	// Arrays are declated using:
 	// NAME := [SIZE]TYPE{initializer_list}
@@ -407,6 +411,7 @@ func ArraysAndSlices() {
 	//		if you keep appending items
 	//		slice copies all will refer to the same underlying array
 	// 		since they are just VIEWs of a real place in memory
+	return "ArraysAndSlices"
 }
 
 // Doctor is a basic type containing a Doctor Who doctor number, actor name, and slice of companion names
@@ -445,7 +450,7 @@ type Bird struct {
 }
 
 // MapsAndStructs details other basic container primitives in Go
-func MapsAndStructs() {
+func MapsAndStructs() string {
 	fmt.Println("\nShowing Maps and Structs Basics in Go...")
 
 	// Maps behave the way they do in any language
@@ -585,6 +590,7 @@ func MapsAndStructs() {
 	// Can use the "reflect" library
 	// to query type, field, and tag info
 	// can use these for validation framework
+	return "MapsAndStructs"
 }
 
 func returnTrue() bool {
@@ -593,7 +599,7 @@ func returnTrue() bool {
 }
 
 // ControlFlow details common control flow in Go (if, switch)
-func ControlFlow() {
+func ControlFlow() string {
 	fmt.Println("\nShowing Control Flow Basics in Go...")
 
 	// a lot of IDIOMATIC GO uses initializers within if statements
@@ -699,10 +705,11 @@ func ControlFlow() {
 	default:
 		fmt.Println("j is another type")
 	}
+	return "ControlFlow"
 }
 
 // Loops details common loop structures in Go (ONLY for)
-func Loops() {
+func Loops() string {
 	fmt.Println("\nShowing Loop Basics in Go...")
 
 	// All looping statements in Go use for
@@ -757,17 +764,32 @@ func Loops() {
 		fmt.Println(i)
 	}
 
-	// can use labels like goto labels in Go
-Loop:
+	// can use labels to label the loop we want to break from in Go
+OuterLoop:
 	for i = 0; i < 3; i++ {
+	InnerLoop:
 		for j := 1; j < 3; j++ {
 			ij := i * j
 			fmt.Println(ij)
 			if ij >= 3 {
-				fmt.Println("Jumping to Loop label")
-				break Loop
+				fmt.Println("Breaking from Outer Loop")
+				break OuterLoop
+			} else if ij == 45 {
+				fmt.Println("Breaking from Inner Loop")
+				break InnerLoop
 			}
 		}
 	}
 
+	// for initializer; test; incrementer {}
+	// for test {}
+	// for
+
+	return "Loops"
+}
+
+// DeferPanicRecover shows some advanced control flow constructs in Go
+func DeferPanicRecover() string {
+
+	return "DeferPanicRecover"
 }
