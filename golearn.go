@@ -2,6 +2,9 @@ package golearn
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"reflect"
 	"strconv"
 )
@@ -788,8 +791,115 @@ OuterLoop:
 	return "Loops"
 }
 
+func deferredGuy1() {
+	fmt.Println("1. I was deferred at the beginning of DeferPanicRecover()")
+}
+
+func deferredGuy2() {
+	fmt.Println("2. I was deferred at the beginning of DeferPanicRecover()")
+}
+
+// this is an interesting trick where we are passing an invocation
+// of an anonymous function (A LAMBDA)
+// it does a recover() call, which is basicall what catches a thrown panic
+// so, thinking about it more, the semantics are pretty similar
+// to try-catch with exceptions
+
+func panicker() {
+	fmt.Println("About to panic")
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("Error in Recover:", err)
+		}
+	}() // () here is the actual invocation of the func
+	panic("Please Recover Me")
+	fmt.Println("End of panicker")
+}
+
 // DeferPanicRecover shows some advanced control flow constructs in Go
 func DeferPanicRecover() string {
+	// DEFER
+	// deferred functions execute when the context it is called inside
+	// returns to the context which called it
+	// meaning, when this function returns, the deferred
+	// functions are then executed
+	defer deferredGuy1()
+	defer deferredGuy2()
+	// LIFO ordering
+	// so think of the deferred functions as being pushed onto a stack
+	// think also of closing resources in the opposite order you opened them
+	// like using a deque in C++ to manage initialized items
+
+	// lets use a real example to show some of this capability
+	// the most common pattern is:
+	// open resource with some call:
+	//		res, err := GetResource()
+	//		if err != nil {
+	//			// we in trouble
+	//		}
+	//		defer res.Close()
+
+	res, err := http.Get("http://www.google.com/robots.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close() // we will always close this resource no matter
+	// what throws us from this function
+	robots, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s", robots)
+
+	// one more thing to note is that if an argument is passed to a deferred
+	// function, the argument that is used is the one seen AT DEFERED CALL
+	// this means that if the argument changes later, the deferred function
+	// does not see it
+	// this in effect means that these arguments are put onto some kind of
+	// stack by the Go runtime when the defer call is made
+
+	a := "i will be printed"
+	defer fmt.Println(a)
+	a = "i will not be printed"
+
+	// PANIC
+	// Go does not have exceptions because the idea
+	// is that most things that exceptions are thrown on in something like
+	// C and C++ are not actually "exceptional".  We should just be able to
+	// handle errors
+
+	// if something really bad does happen, we can throw PANIC
+	// a panic will throw a runtime error and abort
+	// and also print a stack trace for some debug info
+	// if you for example divide by 0, the Go runtime will
+	// throw a panic, and there are other "destructive states"
+	// that could be reached where a panic would be thrown
+	if a == "i will be printed" {
+		panic("WE ARE IN TROUBLE") // luckily this won't be triggered :)
+	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello Go!"))
+	})
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// this function below will call a panic,
+	// but also has a deferred recover()
+	// execution of panicker() stops when the panic is encountered,
+	// so then the deferred statement is run
+	// this will then recover, so the panic will not propogate
+	// all the way up into this calling function
+	// to this function, execution continues normally
+	fmt.Println("start")
+	panicker()
+	fmt.Println("end")
+
+	// we basically can only use recover() in a deferred context
+	// if we want to recover inside (when leaving) the throwing function
 
 	return "DeferPanicRecover"
 }
