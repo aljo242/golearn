@@ -1012,7 +1012,6 @@ func sum(values ...int) int {
 // alternatively, just allocate pointers to the heap within functions
 // so you are never confused by them
 func sumReturnPointer(values ...int) *int {
-	fmt.Println(values)
 	result := 0
 	for _, v := range values {
 		result += v
@@ -1025,12 +1024,22 @@ func sumReturnPointer(values ...int) *int {
 // this makes everything that is happening a bit clearer, so i
 // will do this
 func sumReturnPointer2(values ...int) *int {
-	fmt.Println(values)
 	result := new(int)
 	for _, v := range values {
 		*result += v
 	}
 	return result
+}
+
+// we can also do named return values like this
+// the pointer should be stack allocated, then moved
+// onto the heap at return
+func sumReturnPointer3(values ...int) (result *int) {
+	for _, v := range values {
+		*result += v
+	}
+	return // dont need to specify the variable, since it is
+	// known to the compiler from the signature
 }
 
 // Functions shows basic syntax, parameters, returns, anonymous funcs, function as types, methods
@@ -1060,6 +1069,8 @@ func Functions() string {
 	fmt.Println("Sum from variadic function args func with pointer on stack moved to the heap is is:", *psum)
 	psum = sumReturnPointer2(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
 	fmt.Println("Sum from variadic function args func with heap pointer return is is:", *psum)
+	psum = sumReturnPointer3(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
+	fmt.Println("Sum from variadic function args func with named pointer return is is:", *psum)
 
 	return "Functions"
 }
