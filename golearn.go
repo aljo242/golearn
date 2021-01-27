@@ -958,3 +958,10 @@ func Pointers() string {
 
 	return "Pointers"
 }
+
+// Functions shows basic syntax, parameters, returns, anonymous funcs, function as types, methods
+func Functions() string {
+	fmt.Println("\nShowing Functions Basics in Go...")
+
+	return "Functions"
+}
