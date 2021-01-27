@@ -1032,8 +1032,9 @@ func sumReturnPointer2(values ...int) *int {
 }
 
 // we can also do named return values like this
-// the pointer should be stack allocated, then moved
-// onto the heap at return
+// the pointer should be stack allocated, but here
+// will NOT be moved to the heap
+// so this will create a "panic" event
 func sumReturnPointer3(values ...int) (result *int) {
 	for _, v := range values {
 		*result += v
@@ -1041,6 +1042,64 @@ func sumReturnPointer3(values ...int) (result *int) {
 	return // dont need to specify the variable, since it is
 	// known to the compiler from the signature
 }
+
+func sumReturnPointer4(values ...int) (result int) {
+	for _, v := range values {
+		result += v
+	}
+	return // dont need to specify the variable, since it is
+	// known to the compiler from the signature
+}
+
+// we can return as many values as we want from a function
+// we just need to write them out in this (type1, type2, .. typeN) syntax
+
+// A Go idiom for most functions is to return (val, error)
+// you can see that the "error" is a return type
+// this allows us to use val, err := func()
+// and check errors in our code
+// this is the typical approach to handling errors as opposed
+// to throwing exceptions and catching them higher up the call stack
+func multiReturnVal(a, b float64) (float64, error) {
+	if b == 0.0 {
+		return 0.0, fmt.Errorf("Divide by 0")
+	}
+	return a / b, nil // no error is nil
+}
+
+type greeter struct {
+	greeting string
+	name     string
+}
+
+// method for the greeter type
+// takes by value with this style
+// therefore modifications make no side effects
+// (g greeter) is called a VALUE RECIEVER
+func (g greeter) greetVal() {
+	g.greeting = "Goodbye"
+	fmt.Println(g.greeting, g.name)
+}
+
+// takes by reference (pointer) with this style
+// therefore, modifications make side effects
+// (g *greeter) is called a REFERENCE RECIEVER
+func (g *greeter) greetRef() {
+	g.greeting = "Goodbye"
+	fmt.Println(g.greeting, g.name)
+}
+
+// VAL vs REF recievers
+// VAl recievers by definition will not have side effects on objects,
+// so that has inherent safety at the cost of COPYING
+// REF only take a pointer to objs so the calls are always lightweight
+// we will need to be much more careful about the modifications we
+// are making to fields
+
+// are we able to specify things as const as a non-modification guarantee
+// to  the compiler?
+// no.. . :(
+// that actually kinda blows
 
 // Functions shows basic syntax, parameters, returns, anonymous funcs, function as types, methods
 func Functions() string {
@@ -1069,8 +1128,73 @@ func Functions() string {
 	fmt.Println("Sum from variadic function args func with pointer on stack moved to the heap is is:", *psum)
 	psum = sumReturnPointer2(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
 	fmt.Println("Sum from variadic function args func with heap pointer return is is:", *psum)
-	psum = sumReturnPointer3(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
-	fmt.Println("Sum from variadic function args func with named pointer return is is:", *psum)
+	sum = sumReturnPointer4(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
+	fmt.Println("Sum from variadic function args func with named return is is:", sum)
+
+	val, err := multiReturnVal(1.0, 0.0) // this will return an error since it divides by 0
+	if err != nil {
+		fmt.Println(val, err.Error())
+	}
+
+	// anonymous functions
+	// anything you can do with any other type, you can do with functions in Go
+	// FIRST CLASS CITIZENSHIP
+	func() {
+		fmt.Println("I am an invoked anonymous function")
+	}()
+
+	f := func() {
+		fmt.Println("I am a an anonymous function saved to a var")
+	}
+	// invoke
+	f()
+
+	// anonymouse functions capture everything that is in their current
+	// scope by default
+	// this anonymous func captures "i" since it is part of the current context
+	for i := 0; i < 5; i++ {
+		func() {
+			fmt.Println(i)
+		}()
+	}
+
+	// it is better practice to actually pass something by value into your function
+	// explicitly as shown below:
+	for i := 0; i < 5; i++ {
+		func(val int) {
+			fmt.Println(val)
+		}(i)
+	}
+
+	// full function signatures are as follows:
+	var div func(a, b float64) (float64, error)
+	div = func(a, b float64) (float64, error) {
+		if b == 0.0 {
+			return 0.0, fmt.Errorf("DIVIDE BY 0.0")
+		}
+		return a / b, nil
+	}
+
+	d, err := div(5, 4)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(d)
+
+	// methods
+	// are only declared outside of structs in Go
+	// we use the syntax:
+	// func (s structType) FUNCNAME(ARGS) RETURNS { BODY }
+	g := greeter{
+		greeting: "Hello",
+		name:     "Greeter",
+	}
+	// invoking the method has a standard syntax
+	// whether it is calling by val or reference
+	g.greetVal()
+	fmt.Println(g) // should be unmodified
+	g.greetRef()
+	fmt.Println(g) // should be modified
 
 	return "Functions"
 }
