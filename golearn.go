@@ -959,9 +959,107 @@ func Pointers() string {
 	return "Pointers"
 }
 
+// we can provide arguments in this list style
+// but ONLY if they are ALL of the SAME type
+func multiArgSameType(a, b, c, d, e, f, g int) int {
+	return a + b + c - d*e + f - g
+}
+
+// functions can accept pointers
+func pointerAcceptor(p *int) {
+	*p = 0 // set the value pointed to by p to 0
+	// this WILL have side effects
+}
+
+type bigBoy struct {
+	bigArr  [100]int
+	hugeArr [1000]int
+}
+
+func takeStructByRef(pBigBoy *bigBoy) {
+	fmt.Println("Working on the big boy.")
+	for k, v := range pBigBoy.bigArr {
+		v = k + k%2
+		pBigBoy.hugeArr[k] = v
+		if k%10 == 0 {
+			fmt.Println(k)
+		}
+	}
+}
+
+// variadic parameters let us do some "templating" of sorts
+// when passed, they act as a SLICE!!!
+// can only have one variadic parameter, and it has to be LAST in the args list
+// nothing stopping you from writing:
+// 		func sum2(msg string, otherVal int, values ... int) int {}
+func sum(values ...int) int {
+	fmt.Println(values)
+	result := 0
+	for _, v := range values {
+		result += v
+	}
+	return result
+}
+
+// Go does allow values to be returned as pointers
+// this may seem counter-intuitive
+// result would be stored on the stack of this function
+// so the returned pointer should be pointing to dead memory right?
+// Go Compiler will actually move the value to the heap on return
+// then return the pointer to that heap space
+// Make sure to notes some of the "handy" things the Go Runtime will do
+// for you
+// alternatively, just allocate pointers to the heap within functions
+// so you are never confused by them
+func sumReturnPointer(values ...int) *int {
+	fmt.Println(values)
+	result := 0
+	for _, v := range values {
+		result += v
+	}
+	fmt.Println("Moving stack variable to the heap")
+	return &result
+}
+
+// here we are creating the pointer ourselves on the heap with new
+// this makes everything that is happening a bit clearer, so i
+// will do this
+func sumReturnPointer2(values ...int) *int {
+	fmt.Println(values)
+	result := new(int)
+	for _, v := range values {
+		*result += v
+	}
+	return result
+}
+
 // Functions shows basic syntax, parameters, returns, anonymous funcs, function as types, methods
 func Functions() string {
 	fmt.Println("\nShowing Functions Basics in Go...")
+
+	// ok we know the basic syntax already
+	// func NAME(param1 type, param2 type ...) returntype {}
+
+	// extremely supid example alert
+	a := multiArgSameType(1, 1, 1, 1, 1, 1, 1)
+	// get the value pointed to by &a back and print
+	fmt.Println("Before pass by reference", a)
+	pointerAcceptor(&a)
+	fmt.Println("Should print zero:", a)
+
+	// big boy is a heavy weight struct with two large arrays in it
+	// imaging passing this struct by value and having to copy everything
+	// alternatively we can just pass a pointer which is just 8 bytes
+	// (64-bit addresses on 64-bit machines)
+	pBoy := new(bigBoy)
+	takeStructByRef(pBoy)
+
+	sum := sum(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
+	fmt.Println("Sum from variadic function args func is:", sum)
+	psum := sumReturnPointer(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
+	fmt.Println("Sum from variadic function args func with pointer on stack moved to the heap is is:", *psum)
+	psum = sumReturnPointer2(1, 2, 2, 3, 55, 11, 6, 2, 2, 52, 3, 52)
+	fmt.Println("Sum from variadic function args func with heap pointer return is is:", *psum)
 
 	return "Functions"
 }
