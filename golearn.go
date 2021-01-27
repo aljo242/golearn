@@ -1198,3 +1198,8 @@ func Functions() string {
 
 	return "Functions"
 }
+
+// Interfaces are contracts that a struct must fulfil (generally in implementing some kind of method)
+func Interfaces() string {
+	return "Interfaces"
+}
