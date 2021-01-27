@@ -905,3 +905,56 @@ func DeferPanicRecover() string {
 
 	return "DeferPanicRecover"
 }
+
+type basicStruct struct {
+	foo int
+	bar int
+}
+
+// Pointers shows how pointers work in go... wow these are getting worse and worse
+func Pointers() string {
+	fmt.Println("\nShowing Pointers Basics in Go...")
+
+	// pointers are basically the same to C-Like languages
+	a := 42
+	b := &a         // b is a pointer to the address of a
+	var c int = 42  // equivalent to above
+	var d *int = &c // equivalent to above
+	fmt.Println(c, d)
+	fmt.Println(a)
+
+	*b = 21        // "assign value pointed to by b to 21"
+	fmt.Println(a) // a will be  modified since b pointed to a
+
+	// what about pointer arithmetic?
+	// CANT DO IT...
+	// 		unless we import the "unsafe" package :)
+	arr := [3]int{1, 2, 3}
+	b = &arr[0]
+	d = &arr[1]
+	fmt.Printf("%v %p %p\n", arr, b, d) // %p is pointer
+
+	var sp *basicStruct
+	sp = &basicStruct{foo: 1, bar: 2}
+	sp = new(basicStruct) // cannot use the init list syntax
+	// will be created with default values
+	fmt.Println(sp)
+	// to do assignment of fields from a pointer to a struct need to use this
+	// (*NAME).field = VALUE syntax
+	// because the () operation takes precedence over the . operator
+	// without it, you will get an error
+	(*sp).foo = 2
+	(*sp).bar = 1
+
+	// compiler will just infer this for us tho so
+	sp.foo = 2
+	sp.bar = 1
+	// is equivalent and valid
+	// which may be confusing when coming from C/C++
+	// need to be careful to check if you are working with a pointer or a stack obj
+
+	// what is the zero-value for a pointer????
+	// NIL ... aka nullptr
+
+	return "Pointers"
+}
