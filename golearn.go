@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // BIG CONCEPT
@@ -1574,11 +1575,200 @@ func GoRoutines() string {
 	//		check for race conditions at compile time
 	//		"go build -race" will check for race conditions
 	// 		"go build -msan" will do address sanitizer
+	//		"go run -race"  will actually run and print stack trace for us
 
 	return "GoRoutines"
 }
 
+const (
+	logInfo    = "INFO"
+	logWarning = "WARNING"
+	logError   = "ERROR"
+)
+
+type logEntry struct {
+	time     time.Time
+	severity string
+	message  string
+}
+
+var logCh = make(chan logEntry, 50)
+var doneCh = make(chan struct{}) // empty struct
+// this is what is known as a signal only channel
+// so it is some kind of semaphore stuff
+
+// we now have a select{} control block in this function
+// select multiplexes incoming signals
+func logger() {
+	for {
+		select {
+		case entry := <-logCh:
+			fmt.Printf("%v - [%v]%v\n", entry.time.Format("2006-01-02T15:04:05"), entry.severity, entry.message)
+
+		case <-doneCh:
+			break
+		}
+	}
+}
+
 // Channels are how we can pass data between threads in go
 func Channels() string {
+	fmt.Println("\nShowing Channels Basics in Go...")
+	// channels are pretty much always going to be used in the context
+	// of goroutines, since it is for passing data between threads
+	// so, they build off of goroutines, and are what truly make them
+	// flexible
+
+	// we have to use the make() function to make a channel
+	// this sort of makes sense, since make will put something on
+	// the heap, and we will need to place something in "shared memory"
+	// for it to be seen by other threads
+	ch := make(chan int) // make a channel for an int
+	// here we made a strongly typed channel, assuming that means we can make
+	// generic channels
+
+	// SEND ON CHANNEL
+	//		ch <- value
+
+	// RECIEVE FROM CHANNEL
+	//	 	var := <- ch
+
+	// so if arrow is pointing TO channel, send
+	// if arrow is pointing FROM channel, recieve from
+
+	// ch <- 		SEND
+	// <- ch		RECV
+
+	wg.Add(2)
+	go func() {
+		i := <-ch // recieve from channel
+		fmt.Println(i)
+		wg.Done()
+	}()
+
+	go func() {
+		ch <- 42 // send on channel
+		wg.Done()
+	}()
+	wg.Wait()
+
+	// same thing but in  a loop
+	for j := 0; j < 5; i++ {
+		wg.Add(2)
+		go func() {
+			i := <-ch // recieve from channel
+			fmt.Println(i)
+			ch <- i + j
+			wg.Done()
+		}()
+
+		go func() {
+			ch <- j // send on channel
+			fmt.Println(<-ch)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	// we need a RECV for every SEND
+	// otherwise we will get a deadlock and crash
+
+	// from this, we can discern that SENDs and RECVs over channels
+	// are BLOCKING
+
+	// most of the time (mainly for good design's sake)
+	// we will want to have a function only SEND or RECV
+	// from a channel
+	// we can do that with the following syntax:
+
+	//	func(NAME <-chan type)	RECV
+	//	func(NAME chan<- type)	SEND
+
+	// if we tried to do a SEND in the func that took a RECV chan
+	// we would get a compile time error
+	// this gives us more type safety, and encourages modularized designs
+	for j := 0; j < 5; i++ {
+		wg.Add(2)
+		go func(ch <-chan int) { // takes a RECV channel only
+			i := <-ch // recieve from channel
+			fmt.Println(i)
+			wg.Done()
+		}(ch) // note we are inputting a bidirectional chan
+		// and the compiler will just note that it is RECV only
+
+		go func(ch chan<- int) { // takes a SEND channel only
+			ch <- j // send on channel
+			wg.Done()
+		}(ch)
+	}
+	wg.Wait()
+
+	// BUFFERED CHANNELS
+	// with buffered channels, we now have non-blocking behavior!
+	// we still need to make sure we process all of the data though
+	// below, we have  buffer of size 2, so both messages can be
+	// SENT without blocking, but we only read one out then leave
+	// the goroutine, essentially losing the 45 value on the channel
+	fmt.Println("Sending 2 values to buffered channel (size 2)")
+	ch = make(chan int, 2)
+	wg.Add(2)
+	go func(ch <-chan int) {
+		i := <-ch // recieve from channel
+		fmt.Println(i)
+		wg.Done()
+	}(ch)
+
+	go func(ch chan<- int) {
+		ch <- 42 // send on channel
+		ch <- 45 // send on channel
+		wg.Done()
+	}(ch)
+	wg.Wait()
+
+	// iterate over buffered channel to process all data
+	chanSize := 50
+	sendSize := chanSize - 5
+	ch = make(chan int, chanSize)
+	fmt.Printf("Sending %d values to buffered channel (size %d)\n", sendSize, chanSize)
+
+	wg.Add(2)
+	go func(ch <-chan int) {
+		for {
+			if val, ok := <-ch; ok {
+				fmt.Println(val)
+			} else {
+				break
+			}
+		}
+		wg.Done()
+	}(ch)
+
+	go func(ch chan<- int) {
+		for i := 0; i < sendSize; i++ {
+			ch <- 42 + i%3
+		}
+		close(ch) // since we sent less than the full channel size
+		//	the channel will deadlock in the for range loop above
+		// unless we explicitly close the channel, like we do here
+
+		// this creates a NEW problem, where we now have closed the channel
+		// if we try to use it again for anyting, we in trouble
+		// we have to make a new channel now
+		wg.Done()
+	}(ch)
+	wg.Wait()
+
+	fmt.Println("Starting Logger....")
+	go logger()
+
+	logCh <- logEntry{time.Now(), logInfo, "App is starting"}
+	time.Sleep(100 * time.Millisecond)
+
+	logCh <- logEntry{time.Now(), logInfo, "App is shutting down"}
+	time.Sleep(100 * time.Millisecond)
+
+	doneCh <- struct{}{} // this syntax is kind of jank
+	// but this is how you send a blank semaphore in Go
+
 	return "Channels"
 }
