@@ -1536,9 +1536,9 @@ func GoRoutines() string {
 	for i := 0; i < 10; i++ {
 		wg.Add(2)
 		m.RLock()
-		go printCounterWithMutex()
+		go printCounterWithMutex2()
 		m.Lock()
-		go incrementWithMutex()
+		go incrementWithMutex2()
 	}
 	wg.Wait() // wait until they are all done
 
