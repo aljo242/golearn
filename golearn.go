@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
+	"runtime"
 	"strconv"
 	"sync"
 )
@@ -1427,6 +1428,7 @@ func printMsg(msg string) {
 // from a "main" thread
 var wg = sync.WaitGroup{}
 var wgCounter = 0
+var m = sync.RWMutex{}
 
 func increment() {
 	wgCounter++
@@ -1435,6 +1437,32 @@ func increment() {
 
 func printCounter() {
 	fmt.Println("counter:", wgCounter)
+	wg.Done()
+}
+
+func incrementWithMutex() {
+	m.Lock() // lock mutex (read + write)
+	wgCounter++
+	m.Unlock()
+	wg.Done()
+}
+
+func printCounterWithMutex() {
+	m.RLock() // read lock the mutex
+	fmt.Println("counter:", wgCounter)
+	m.RUnlock()
+	wg.Done()
+}
+
+func incrementWithMutex2() {
+	wgCounter++
+	m.Unlock()
+	wg.Done()
+}
+
+func printCounterWithMutex2() {
+	fmt.Println("counter:", wgCounter)
+	m.RUnlock()
 	wg.Done()
 }
 
@@ -1484,6 +1512,9 @@ func GoRoutines() string {
 	msg = "I am a messaged that changed after the go routine call"
 	wg.Wait() // waiting for signal
 
+	fmt.Println("Unsyncronized goroutines...")
+	// this loop will spawn 20 goroutines
+	// but we will have no sync BETWEEN ROUTINES
 	for i := 0; i < 10; i++ {
 		wg.Add(2)
 		go printCounter()
@@ -1491,5 +1522,63 @@ func GoRoutines() string {
 	}
 	wg.Wait() // wait until they are all done
 
+	fmt.Println("Syncronized goroutines with mutexes...")
+	for i := 0; i < 10; i++ {
+		wg.Add(2)
+		go printCounterWithMutex()
+		go incrementWithMutex()
+	}
+	wg.Wait() // wait until they are all done
+
+	fmt.Println("Syncronized goroutines with mutexes outside of calls...")
+	// now that we are locking the mutexes in the SAME context
+	// what happens is guaranteed to be ORDERED
+	for i := 0; i < 10; i++ {
+		wg.Add(2)
+		m.RLock()
+		go printCounterWithMutex()
+		m.Lock()
+		go incrementWithMutex()
+	}
+	wg.Wait() // wait until they are all done
+
+	// this basically is making everything be single threaded tho...
+	// great
+	// single threaded + mutex overhead = worse than original
+
+	// the runtime packages lets us query things like max number of threads
+	fmt.Println("GOMAXPROCS:", runtime.GOMAXPROCS(-1))
+
+	// think of GOMAXPROCS as a tuning parameter for your
+	// parallel applications
+
+	// minimum 1 thread per core
+	newMaxProcs := 100
+	fmt.Println("Setting GOMAXPROCS to", newMaxProcs)
+	runtime.GOMAXPROCS(newMaxProcs)
+	fmt.Println("GOMAXPROCS:", runtime.GOMAXPROCS(-1))
+
+	// this is the # of OS threads, so just creating a TON
+	// will add lots of memory overhead
+	// remember the scheduler maps goroutines as LWPs
+	// ONTO OS threads
+	// so you dont need as many OS Threads as goroutines or something
+
+	// BEST PRACTICES
+	// 		if making a library, try to limit goroutines
+	//		let consumer use them
+
+	// 		when creating goroutines, know how it will end
+	//		we want to return resources as soon as we can
+
+	//		check for race conditions at compile time
+	//		"go build -race" will check for race conditions
+	// 		"go build -msan" will do address sanitizer
+
 	return "GoRoutines"
+}
+
+// Channels are how we can pass data between threads in go
+func Channels() string {
+	return "Channels"
 }
