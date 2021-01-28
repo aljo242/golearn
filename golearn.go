@@ -1760,16 +1760,16 @@ func Channels() string {
 		wg.Wait()
 
 	*/
-	fmt.Println("Starting Logger....")
-	go logger()
+	//fmt.Println("Starting Logger....")
+	//go logger()
 
-	logCh <- logEntry{time.Now(), logInfo, "App is starting"}
-	time.Sleep(100 * time.Millisecond)
+	//logCh <- logEntry{time.Now(), logInfo, "App is starting"}
+	//time.Sleep(100 * time.Millisecond)
 
-	logCh <- logEntry{time.Now(), logInfo, "App is shutting down"}
-	time.Sleep(100 * time.Millisecond)
+	//logCh <- logEntry{time.Now(), logInfo, "App is shutting down"}
+	//time.Sleep(100 * time.Millisecond)
 
-	doneCh <- struct{}{} // this syntax is kind of jank
+	//doneCh <- struct{}{} // this syntax is kind of jank
 	// but this is how you send a blank semaphore in Go
 
 	return "Channels"
