@@ -1450,12 +1450,11 @@ func GoRoutines() string {
 	// go routines are just abstractions of these user threads
 	// the go runtime maps go routines onto the actual OS threads for us
 
+	wg.Add(3)
 	go printMsg("I am running as a go routine")
 
-	wg.Add(2)
 	go func() {
 		printMsg("I am a go routine running an anonymous function")
-		wg.Done()
 	}()
 
 	msg := "I am a message given to anon func"
