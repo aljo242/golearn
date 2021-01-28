@@ -1725,39 +1725,41 @@ func Channels() string {
 	}(ch)
 	wg.Wait()
 
-	// iterate over buffered channel to process all data
-	chanSize := 50
-	sendSize := chanSize - 5
-	ch = make(chan int, chanSize)
-	fmt.Printf("Sending %d values to buffered channel (size %d)\n", sendSize, chanSize)
+	/*
+		// iterate over buffered channel to process all data
+		chanSize := 50
+		sendSize := chanSize - 5
+		ch = make(chan int, chanSize)
+		fmt.Printf("Sending %d values to buffered channel (size %d)\n", sendSize, chanSize)
 
-	wg.Add(2)
-	go func(ch <-chan int) {
-		for {
-			if val, ok := <-ch; ok {
-				fmt.Println(val)
-			} else {
-				break
+		wg.Add(2)
+		go func(ch <-chan int) {
+			for {
+				if val, ok := <-ch; ok {
+					fmt.Println(val)
+				} else {
+					break
+				}
 			}
-		}
-		wg.Done()
-	}(ch)
+			wg.Done()
+		}(ch)
 
-	go func(ch chan<- int) {
-		for i := 0; i < sendSize; i++ {
-			ch <- 42 + i%3
-		}
-		close(ch) // since we sent less than the full channel size
-		//	the channel will deadlock in the for range loop above
-		// unless we explicitly close the channel, like we do here
+		go func(ch chan<- int) {
+			for i := 0; i < sendSize; i++ {
+				ch <- 42 + i%3
+			}
+			close(ch) // since we sent less than the full channel size
+			//	the channel will deadlock in the for range loop above
+			// unless we explicitly close the channel, like we do here
 
-		// this creates a NEW problem, where we now have closed the channel
-		// if we try to use it again for anyting, we in trouble
-		// we have to make a new channel now
-		wg.Done()
-	}(ch)
-	wg.Wait()
+			// this creates a NEW problem, where we now have closed the channel
+			// if we try to use it again for anyting, we in trouble
+			// we have to make a new channel now
+			wg.Done()
+		}(ch)
+		wg.Wait()
 
+	*/
 	fmt.Println("Starting Logger....")
 	go logger()
 
