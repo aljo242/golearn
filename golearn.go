@@ -1481,7 +1481,6 @@ func GoRoutines() string {
 	msg = "I am a message given to anon func"
 	go func(msg string) {
 		printMsg(msg) // passed this goroutine a value, so problem solved
-		wg.Done()     // signal that I am done
 	}(msg)
 	msg = "I am a messaged that changed after the go routine call"
 	wg.Wait() // waiting for signal
