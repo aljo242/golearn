@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"sync"
 )
 
 // BIG CONCEPT
@@ -1402,10 +1403,95 @@ func Interfaces() string {
 		fmt.Println("idk what i is...")
 	}
 
+	// Best Practices with Interfaces
+
+	// use many, small interfaces
+	// 		compose them together to make larger interfaces
+	//		LEGO style
+
+	// Don't export interfaces for types that will be consumed
+	// Do export interfaces for types that will be used by package
+
+	// Design functions and methods to recieve interfaces whenever possible
+
 	return "Interfaces"
+}
+
+func printMsg(msg string) {
+	fmt.Println(msg)
+	wg.Done()
+}
+
+// wait group is like a list of pending go routines
+// we can use it to wait for execution of a spawned goroutine
+// from a "main" thread
+var wg = sync.WaitGroup{}
+var wgCounter = 0
+
+func increment() {
+	wgCounter++
+	wg.Done()
+}
+
+func printCounter() {
+	fmt.Println("counter:", wgCounter)
+	wg.Done()
 }
 
 // GoRoutines details Go's lightweight process, the goroutine
 func GoRoutines() string {
+	fmt.Println("\nShowing GoRoutine Basics in Go...")
+
+	// instead of using OS threads
+	// Go uses lightweight processes (user-space threads)
+	// so we less startup/teardown costs
+	// and theoretically don't need to do things like thread pooling
+
+	// go routines are just abstractions of these user threads
+	// the go runtime maps go routines onto the actual OS threads for us
+
+	go printMsg("I am running as a go routine")
+
+	wg.Add(2)
+	go func() {
+		printMsg("I am a go routine running an anonymous function")
+		wg.Done()
+	}()
+
+	msg := "I am a message given to anon func"
+	go func() {
+		printMsg(msg) // this will be a different thread,
+		// but the Go runtime will still know where to access msg at
+		// we have introduced a dependency from this master thread
+		// and this go routine tho, so it is starting to get spicy
+	}()
+	msg = "I am a messaged that changed after the go routine call"
+	// we might get the inital msg value or this second value
+	// no real way to know, undefined behavior
+	wg.Wait()
+
+	// so generally, we do not want to play around with this closure stuff
+	// we could rewrite the function as one that takes the msg by value
+	// and resolve this issue
+
+	fmt.Println("Trying again but passing message to goroutine by value")
+
+	wg.Add(1)
+	// reset
+	msg = "I am a message given to anon func"
+	go func(msg string) {
+		printMsg(msg) // passed this goroutine a value, so problem solved
+		wg.Done()     // signal that I am done
+	}(msg)
+	msg = "I am a messaged that changed after the go routine call"
+	wg.Wait() // waiting for signal
+
+	for i := 0; i < 10; i++ {
+		wg.Add(2)
+		go printCounter()
+		go increment()
+	}
+	wg.Wait() // wait until they are all done
+
 	return "GoRoutines"
 }
