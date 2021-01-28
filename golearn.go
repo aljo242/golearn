@@ -1,7 +1,9 @@
 package golearn
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -1199,7 +1201,211 @@ func Functions() string {
 	return "Functions"
 }
 
+// interfaces are types just like structs
+// so we have this common syntax
+
+// in Go
+// 		structs describe data
+//		interfaces describe behaviors
+
+// so structs have fields of data and can be composed
+// 		of other structs which have their own fields
+
+// and interfaces have methods and can be composed
+// 		of other interfaces which have their own methods
+
+// so we have this nice symmetry
+
+// Writer writes stuff
+type Writer interface {
+	Write([]byte) (int, error)
+}
+
+// we generally create structs and then have them satisfy interfaces
+
+// ConsoleWriter is a Writer to the ouput console
+type ConsoleWriter struct{}
+
+// TCPWriter is a Writer to a TCP connection
+type TCPWriter struct{}
+
+// FileWriter is a Writer to a File
+type FileWriter struct{}
+
+// we only implictly satisfy interfaces
+// by creating their implementations for our structs
+func (cw ConsoleWriter) Write(data []byte) (int, error) {
+	n, err := fmt.Println(string(data))
+	return n, err
+}
+
+func (tw TCPWriter) Write(data []byte) (int, error) {
+	fmt.Println("shhh pretend im writing to a TCP connection")
+	n, err := fmt.Println(string(data))
+	return n, err
+}
+
+func (fw FileWriter) Write(data []byte) (int, error) {
+	fmt.Println("shhh pretend im writing to a file")
+	n, err := fmt.Println(string(data))
+	return n, err
+}
+
+// note since all types are treated equally, we can do something like this:
+
+// Incrementer increments things
+type Incrementer interface {
+	Increment() int
+}
+
+// IntCounter is just a special type alias of an int, that satsifies the Incrementer interface
+type IntCounter int
+
+// Increment for the IntCounter
+func (ic *IntCounter) Increment() int {
+	*ic++
+	return int(*ic)
+}
+
+// Composing interfaces together is a key concept in Go
+
+// Closer closes
+type Closer interface {
+	Close() error
+}
+
+// WriterCloser is an interface composed of Writer and Closer
+type WriterCloser interface {
+	Writer
+	Closer
+}
+
+// BufferedWriterCloser has a buffer and writes/closes
+type BufferedWriterCloser struct {
+	buffer *bytes.Buffer
+}
+
+func (bwc *BufferedWriterCloser) Write(data []byte) (int, error) {
+	n, err := bwc.buffer.Write(data)
+	if err != nil {
+		return 0, err
+	}
+
+	v := make([]byte, 8)
+	for bwc.buffer.Len() > 8 {
+		_, err := bwc.buffer.Read(v)
+		if err != nil {
+			return 0, err
+		}
+
+		_, err = fmt.Println(string(v))
+		if err != nil {
+			return 0, err
+		}
+	}
+	return n, nil
+}
+
+// Close goes thru the whole buffer and flushes in 8 byte chunks
+func (bwc *BufferedWriterCloser) Close() error {
+	for bwc.buffer.Len() > 0 {
+		data := bwc.buffer.Next(8)
+		_, err := fmt.Println(string(data))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// NewBufferedWriterCloser makes a new buffered writercloser
+func NewBufferedWriterCloser() *BufferedWriterCloser {
+	fmt.Println("Creating new BufferedWriterCloser object")
+	bwc := new(BufferedWriterCloser)
+	bwc.buffer = bytes.NewBuffer([]byte{})
+	return bwc
+}
+
 // Interfaces are contracts that a struct must fulfil (generally in implementing some kind of method)
 func Interfaces() string {
+	fmt.Println("\nShowing Interfaces Basics in Go...")
+
+	// we can create a variable that is of an interface type
+	var w Writer = ConsoleWriter{}
+	w.Write([]byte("Using a Writer interface!"))
+
+	// we can create an array of structs
+	// that satisfy the same interface
+	// and call methods on all of them
+	writers := [3]Writer{ConsoleWriter{}, TCPWriter{}, FileWriter{}}
+
+	for _, w := range writers {
+		w.Write([]byte("Using a Writer interface!"))
+	}
+
+	var ic IntCounter = 0
+
+	for i := 0; i < 20; i++ {
+		ic.Increment()
+	}
+
+	fmt.Println(int(ic)) // should be 20 right?
+
+	var wc WriterCloser = NewBufferedWriterCloser() // define as an interface
+	wc.Write([]byte("What is up boys, please like and subscribe!"))
+	wc.Close()
+
+	// type conversion
+	// this will work because BufferedWriterCloser
+	// fulfulls this interface
+	bwc, ok := wc.(*BufferedWriterCloser) // now convert to struct
+	if ok {
+		fmt.Println(bwc)
+	} else {
+		fmt.Println("Conversion Failed")
+	}
+
+	// we can try to convert the WriterCloser to an io.Reader
+	// but this will not work because io.Reader requires a Read interface
+	// we can add some error checking so we don't panic out of execution
+	r, ok := wc.(io.Reader)
+	if ok {
+		fmt.Println(r)
+	} else {
+		fmt.Println("Conversion Failed")
+	}
+
+	// we can use something called the empty interface
+	var empty interface{} = NewBufferedWriterCloser()
+	// what is the point of this thing?
+	// to do anything useful with it, we need to convert it to some other interface
+	// as shown below
+	// we can do that statically in code as we have here
+	// or we can use the reflect package to do some slick
+	// type switching to determine what to use
+	if conv, ok := empty.(WriterCloser); ok {
+		conv.Write([]byte("Writing into interface converted from empty interface"))
+		conv.Close()
+	}
+
+	// lets look at empty interfaces with type switching
+
+	// so say i recieve some generic interface in a function
+	// i may want to do this
+	var i interface{} = 0
+	switch i.(type) {
+	case int:
+		fmt.Println("i is an int")
+	case string:
+		fmt.Println("i is a string")
+	default:
+		fmt.Println("idk what i is...")
+	}
+
 	return "Interfaces"
+}
+
+// GoRoutines details Go's lightweight process, the goroutine
+func GoRoutines() string {
+	return "GoRoutines"
 }
