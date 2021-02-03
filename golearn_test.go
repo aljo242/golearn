@@ -112,3 +112,10 @@ func TestFilepath(t *testing.T) {
 		t.Errorf("Filepath() = %q, want %q", ret, expected)
 	}
 }
+
+func TestOS(t *testing.T) {
+	expected := "OS"
+	if ret := OS(); ret != expected {
+		t.Errorf("OS() = %q, want %q", ret, expected)
+	}
+}

@@ -1862,33 +1862,57 @@ func Filepath() string {
 	return "Filepath"
 }
 
-func pwd() {
-	args := os.Args        // we can get os args anywhere in the program
-	pwd, err := os.Getwd() // get working directory
+func pwd() string {
+	pwd := os.Getenv("PWD")
+	if pwd == "" {
+		fmt.Printf("Unable to get pwd\n")
+		return ""
+	}
+	fmt.Printf("%s = %s\n", "PWD", pwd)
+
+	fileinfo, err := os.Lstat(pwd) // return fileinfo struct of dir
 	if err != nil {
-		fmt.Printf("Error getting working directory: %v\n", err)
-		return
+		fmt.Printf("Could not get dir info: %s\n", err)
+		return ""
 	}
 
-	if len(args) == 1 {
-		return
-	}
-
-	if args[1] != "-P" {
-		return
-	}
-
-	fileinfo, err := os.Lstat(pwd)           // return fileinfo struct of dir
 	if fileinfo.Mode()&os.ModeSymlink != 0 { // AND bitmasks
 		realpath, err := filepath.EvalSymlinks(pwd)
 		if err != nil {
 			fmt.Printf("Error getting real path: %v\n", err)
-			return
+			return ""
 		}
 
 		fmt.Printf("PWD: %s\n", realpath)
+		return realpath
+
+	}
+	return ""
+}
+
+func ensureBaseDir(fpath string) error {
+	baseDir := filepath.Dir(fpath)
+	info, err := os.Stat(baseDir)
+	if err == nil && info.IsDir() {
+		return nil
+	}
+	return os.MkdirAll(baseDir, 0755)
+}
+
+func permissions() {
+	//pwd := pwd()
+	err := ensureBaseDir("./tmp")
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	emptyFile, err := os.Create("./tmp/dummyFile.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer emptyFile.Close()
+
+	log.Printf("%v\n", emptyFile)
 }
 
 // OS covers what is inside th OS Go packages
@@ -1985,6 +2009,7 @@ func OS() string {
 	*/
 
 	pwd()
+	permissions()
 
 	return "OS"
 }
