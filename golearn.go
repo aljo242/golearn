@@ -7,9 +7,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -76,8 +79,8 @@ func Conversions() string {
 
 	// string conversions
 	var s string
-	s = string(i)
-	fmt.Printf("string(%d) = %v\n", i, s)
+	//s = string(i)
+	//fmt.Printf("string(%d) = %v\n", i, s)
 
 	s = strconv.Itoa(i)
 	fmt.Printf("strconv.Itoa(%d) = %v\n", i, s)
@@ -1652,24 +1655,6 @@ func Channels() string {
 	}()
 	wg.Wait()
 
-	// same thing but in  a loop
-	for j := 0; j < 5; i++ {
-		wg.Add(2)
-		go func() {
-			i := <-ch // recieve from channel
-			fmt.Println(i)
-			ch <- i + j
-			wg.Done()
-		}()
-
-		go func() {
-			ch <- j // send on channel
-			fmt.Println(<-ch)
-			wg.Done()
-		}()
-	}
-	wg.Wait()
-
 	// we need a RECV for every SEND
 	// otherwise we will get a deadlock and crash
 
@@ -1687,19 +1672,20 @@ func Channels() string {
 	// if we tried to do a SEND in the func that took a RECV chan
 	// we would get a compile time error
 	// this gives us more type safety, and encourages modularized designs
-	for j := 0; j < 5; i++ {
+	fmt.Println("Unidirectional Channels in a loop:")
+	for j := 0; j < 5; j++ {
 		wg.Add(2)
-		go func(ch <-chan int) { // takes a RECV channel only
+		go func(ch <-chan int, j int) { // takes a RECV channel only
 			i := <-ch // recieve from channel
 			fmt.Println(i)
 			wg.Done()
-		}(ch) // note we are inputting a bidirectional chan
+		}(ch, j) // note we are inputting a bidirectional chan
 		// and the compiler will just note that it is RECV only
 
-		go func(ch chan<- int) { // takes a SEND channel only
+		go func(ch chan<- int, j int) { // takes a SEND channel only
 			ch <- j // send on channel
 			wg.Done()
-		}(ch)
+		}(ch, j)
 	}
 	wg.Wait()
 
@@ -1725,41 +1711,39 @@ func Channels() string {
 	}(ch)
 	wg.Wait()
 
-	/*
-		// iterate over buffered channel to process all data
-		chanSize := 50
-		sendSize := chanSize - 5
-		ch = make(chan int, chanSize)
-		fmt.Printf("Sending %d values to buffered channel (size %d)\n", sendSize, chanSize)
+	// iterate over buffered channel to process all data
+	chanSize := 50
+	sendSize := chanSize - 5
+	ch = make(chan int, chanSize)
+	fmt.Printf("Sending %d values to buffered channel (size %d)\n", sendSize, chanSize)
 
-		wg.Add(2)
-		go func(ch <-chan int) {
-			for {
-				if val, ok := <-ch; ok {
-					fmt.Println(val)
-				} else {
-					break
-				}
+	wg.Add(2)
+	go func(ch <-chan int) {
+		for {
+			if val, ok := <-ch; ok {
+				fmt.Println(val)
+			} else {
+				break
 			}
-			wg.Done()
-		}(ch)
+		}
+		wg.Done()
+	}(ch)
 
-		go func(ch chan<- int) {
-			for i := 0; i < sendSize; i++ {
-				ch <- 42 + i%3
-			}
-			close(ch) // since we sent less than the full channel size
-			//	the channel will deadlock in the for range loop above
-			// unless we explicitly close the channel, like we do here
+	go func(ch chan<- int) {
+		for i := 0; i < sendSize; i++ {
+			ch <- 42 + i%3
+		}
+		close(ch) // since we sent less than the full channel size
+		//	the channel will deadlock in the for range loop above
+		// unless we explicitly close the channel, like we do here
 
-			// this creates a NEW problem, where we now have closed the channel
-			// if we try to use it again for anyting, we in trouble
-			// we have to make a new channel now
-			wg.Done()
-		}(ch)
-		wg.Wait()
+		// this creates a NEW problem, where we now have closed the channel
+		// if we try to use it again for anyting, we in trouble
+		// we have to make a new channel now
+		wg.Done()
+	}(ch)
+	wg.Wait()
 
-	*/
 	//fmt.Println("Starting Logger....")
 	//go logger()
 
@@ -1773,4 +1757,234 @@ func Channels() string {
 	// but this is how you send a blank semaphore in Go
 
 	return "Channels"
+}
+
+func prepaterTestDirTree(tree string) (string, error) {
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", fmt.Errorf("error creating temp directory: %v\n", err)
+	}
+
+	err = os.MkdirAll(filepath.Join(tmpDir, tree), 0755)
+	if err != nil {
+		os.RemoveAll(tmpDir)
+		return "", nil
+	}
+
+	fmt.Printf("Temp dir to walk: %s\n", tree)
+	return tmpDir, nil
+}
+
+// Filepath shows functionality of the "path/filepath" Go library package
+func Filepath() string {
+	fmt.Println("\nShowing path/filepath Basics in Go...")
+
+	fmt.Printf("os.PathSeparator:\t%s\n", string(os.PathSeparator))
+	fmt.Printf("os.PathListSeparator:\t%s\n", string(os.PathListSeparator))
+
+	myPath := "."
+	myAbsPath, err := filepath.Abs(myPath)
+	if err != nil {
+		fmt.Errorf("Could not get absolute path")
+	}
+
+	fmt.Printf("My relative path:\t%s\n", myPath)
+	fmt.Printf("My absolute path:\t%s\n", myAbsPath)
+
+	// Base takes the bottom (right-most)
+	// for example, if my path is /foo/bar
+	// the base is bar
+	testBase := filepath.Base(myAbsPath)
+	fmt.Printf("My base directory:\t%s\n", testBase)
+
+	// we can use Join() to combine path elements with the PathSeparator
+	// Join()ed paths are auto-cleaned
+	wonkyPath := filepath.Join(myAbsPath, "..")
+	fmt.Printf("New Path:\t%s\n", wonkyPath)
+	// Clean() returns the shorted path equivalent
+	// for example, if my path is /foo/bar/../bar/..
+	// the path will be /foo
+	dirtyPath := myAbsPath + "/.."
+	fmt.Printf("Dirty Path:\t%s\n", dirtyPath)
+	cleanedPath := filepath.Clean(dirtyPath)
+	fmt.Printf("Cleaned Path:\t%s\n", cleanedPath)
+
+	relativePath, err := filepath.Rel(cleanedPath, myAbsPath)
+	if err != nil {
+		fmt.Errorf("Could not get relative path")
+	}
+	fmt.Printf("Relative path of cleaned path to this dir:\t%s\n", relativePath)
+
+	fileToGet := "go.mod"
+	ext := filepath.Ext(fileToGet)
+	fmt.Printf("Extension of file %s is %s\n", fileToGet, ext)
+
+	// Walk() lets us "walk" a file tree rooted at root
+	// we pass it a walkFn for each file or dir in the tree
+	tmpDir, err := prepaterTestDirTree("dir/to/walk/skip")
+	if err != nil {
+		fmt.Printf("Unable to create test dir tree: %v\n", err)
+		return ""
+	}
+
+	defer os.RemoveAll(tmpDir)
+	os.Chdir(tmpDir)
+
+	subDirToSkip := "skip"
+
+	// the walkFn is called for every file or dir
+	// that the Walk() function interacts with
+	// Walk() will pass the path string
+	walkFn := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			fmt.Printf("Prevent panic by handling failure accessing a path %q: %v\n", path, err)
+			return err
+		}
+
+		// if it is a directory and the name is
+		// the skip directory, we skip
+		if info.IsDir() && info.Name() == subDirToSkip {
+			fmt.Printf("Skipping a dir without errors: %+v\n", info.Name())
+			return filepath.SkipDir
+		}
+
+		fmt.Printf("Visited file or dir: %q\n", path)
+		return nil
+	}
+
+	fmt.Printf("On Unix:\n")
+	err = filepath.Walk(".", walkFn)
+	if err != nil {
+		fmt.Printf("Error walking the path %q: %v\n", tmpDir, err)
+		return ""
+	}
+
+	return "Filepath"
+}
+
+func pwd() {
+	args := os.Args        // we can get os args anywhere in the program
+	pwd, err := os.Getwd() // get working directory
+	if err != nil {
+		fmt.Printf("Error getting working directory: %v\n", err)
+		return
+	}
+
+	if len(args) == 1 {
+		return
+	}
+
+	if args[1] != "-P" {
+		return
+	}
+
+	fileinfo, err := os.Lstat(pwd)           // return fileinfo struct of dir
+	if fileinfo.Mode()&os.ModeSymlink != 0 { // AND bitmasks
+		realpath, err := filepath.EvalSymlinks(pwd)
+		if err != nil {
+			fmt.Printf("Error getting real path: %v\n", err)
+			return
+		}
+
+		fmt.Printf("PWD: %s\n", realpath)
+	}
+
+}
+
+// OS covers what is inside th OS Go packages
+func OS() string {
+	fmt.Println("\nShowing os Basics in Go...")
+
+	// os.Chdir(dir) - cd dir
+	// os.Chmod(name, mode) - cmod mode file
+
+	// os.Environ() prints all environment variables
+	env := os.Environ()
+	fmt.Printf("Checking if you have Chapel installed...\n")
+	for _, e := range env {
+		if strings.Contains(e, "CHPL_HOME") {
+			fmt.Printf("YES!\t%s\n", e)
+			break
+		}
+	}
+
+	// Executable returns our executable location
+	exe, err := os.Executable()
+	if err != nil {
+		fmt.Errorf("Error getting executable: %v", err)
+	}
+	fmt.Printf("Executable path: %s\n", exe)
+
+	// os.Exit will forcibly terminate the program
+	// if you uncomment what is below, the deferred
+	// print will not be completed, as the process
+	// will just completely exit
+	//defer fmt.Printf("I WONT BE PRINTED")
+	//os.Exit(1)
+
+	// os.Expand performs mapping to strings similar to
+	// ${var} expansion in a CLI in Linux
+	// echo ${CC} -> clang++
+	mapper := func(placeHolderName string) string {
+		switch placeHolderName {
+		case "DAY_PART":
+			return "morning"
+		case "NAME":
+			return "Gopher"
+		}
+
+		return ""
+	}
+
+	fmt.Printf("Expanding: Good ${DAY_PART}, $NAME! to...\n")
+	fmt.Printf("%v\n", os.Expand("Good ${DAY_PART}, $NAME!", mapper))
+
+	// os env are basically stored in a map
+	// we use a key to os.Getenv and get
+	// the value back out
+	chapelPath := os.Getenv("CHPL_HOME")
+	fmt.Printf("%s = %s\n", "CHPL_HOME", chapelPath)
+
+	// Getpagesize could be useful to get some
+	pageSize := os.Getpagesize()
+	fmt.Printf("Page Size: %d bytes\n", pageSize)
+
+	pid := os.Getpid()   // process id of caller
+	ppid := os.Getppid() // process id of callers parent
+	uid := os.Getuid()   // user id of caller
+	fmt.Printf("pid\t\t%d\nppid\t\t%d\nuid\t\t%d\n", pid, ppid, uid)
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		fmt.Errorf("Error getting Hostname: %v", err)
+		return ""
+	}
+	fmt.Printf("hostname\t%s\n", hostname)
+
+	/* FILEMODES
+	   // The single letters are the abbreviations
+	   // used by the String method's formatting.
+	   ModeDir        FileMode = 1 << (32 - 1 - iota) // d: is a directory
+	   ModeAppend                                     // a: append-only
+	   ModeExclusive                                  // l: exclusive use
+	   ModeTemporary                                  // T: temporary file; Plan 9 only
+	   ModeSymlink                                    // L: symbolic link
+	   ModeDevice                                     // D: device file
+	   ModeNamedPipe                                  // p: named pipe (FIFO)
+	   ModeSocket                                     // S: Unix domain socket
+	   ModeSetuid                                     // u: setuid
+	   ModeSetgid                                     // g: setgid
+	   ModeCharDevice                                 // c: Unix character device, when ModeDevice is set
+	   ModeSticky                                     // t: sticky
+	   ModeIrregular                                  // ?: non-regular file; nothing else is known about this file
+
+	   // Mask for the type bits. For regular files, none will be set.
+	   ModeType = ModeDir | ModeSymlink | ModeNamedPipe | ModeSocket | ModeDevice | ModeCharDevice | ModeIrregular
+
+	   ModePerm FileMode = 0777 // Unix permission bits
+	*/
+
+	pwd()
+
+	return "OS"
 }
